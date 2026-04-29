@@ -49,7 +49,12 @@ const Checklist = () => {
 
   const handleAnswer = (opt) => {
     answerQuestion(activeQuestion.id, opt);
-    if (currentIdx < visibleQuestions.length - 1) {
+    
+    // Calculate what the visible questions WILL be after this answer
+    const newAnswers = { ...state.currentSpot.answers, [activeQuestion.id]: opt };
+    const newVisibleQuestions = questions.filter(q => !q.condition || q.condition(newAnswers));
+
+    if (currentIdx < newVisibleQuestions.length - 1) {
       setTimeout(() => setCurrentIdx(prev => prev + 1), 200);
     } else {
       setTimeout(() => navigate('/heat-score'), 200);
@@ -63,6 +68,11 @@ const Checklist = () => {
       navigate('/capture');
     }
   };
+
+  if (!state.currentSpot || !activeQuestion) {
+    if (!state.currentSpot) navigate('/');
+    return null;
+  }
 
   return (
     <motion.div initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="page">
