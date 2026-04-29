@@ -11,10 +11,16 @@ const Summary = () => {
   const [uploadState, setUploadState] = useState('idle'); // idle, uploading, success, error
   const [submitted, setSubmitted] = useState(false);
 
+  // Mark as complete once on mount
   useEffect(() => {
-    if (submitted) return;
-    
-    completeAudit();
+    if (!state.isComplete && stopCount > 0) {
+      completeAudit();
+    }
+  }, [completeAudit, state.isComplete, stopCount]);
+
+  // Handle submission
+  useEffect(() => {
+    if (submitted || stopCount === 0) return;
     
     const doSubmit = async () => {
       setUploadState('uploading');
@@ -33,12 +39,8 @@ const Summary = () => {
       }
     };
     
-    if (stopCount > 0) {
-      doSubmit();
-    } else {
-      setUploadState('idle');
-    }
-  }, [completeAudit, submitAuditData, stopCount, submitted]);
+    doSubmit();
+  }, [submitAuditData, stopCount, submitted]);
 
   const scoreCounts = state.spots.reduce((acc, spot) => {
     const s = spot.heatScore;

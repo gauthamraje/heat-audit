@@ -93,6 +93,7 @@ export const AuditProvider = ({ children }) => {
   }, []);
 
   const resetAudit = React.useCallback(() => {
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
     setState({ spots: [], currentSpot: null, isComplete: false });
   }, []);
 
