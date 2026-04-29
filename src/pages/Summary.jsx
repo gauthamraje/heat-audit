@@ -110,9 +110,29 @@ const Summary = () => {
         )}
 
         {uploadState === 'error' && (
-          <div className="card mb-4" style={{ background: '#FEF2F2', color: '#991B1B', display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <AlertCircle />
-            <div>Failed to save. Check your connection or console logs.</div>
+          <div className="card mb-4" style={{ background: '#FEF2F2', color: '#991B1B' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+              <AlertCircle />
+              <div>Failed to save. Check your connection or console logs.</div>
+            </div>
+            <button className="btn btn-secondary" onClick={() => {
+               setSubmitted(false); // Allow re-submission
+               // The useEffect will trigger again if dependencies change, 
+               // but it's better to just call it directly.
+               const doRetry = async () => {
+                 setUploadState('uploading');
+                 const res = await submitAuditData();
+                 if (res.success) {
+                   setUploadState('success');
+                   setSubmitted(true);
+                 } else {
+                   setUploadState('error');
+                 }
+               };
+               doRetry();
+            }} style={{ background: 'white', color: '#991B1B', border: '1px solid #991B1B', width: 'auto', padding: '8px 16px', fontSize: '0.9rem' }}>
+              Retry Submission
+            </button>
           </div>
         )}
 

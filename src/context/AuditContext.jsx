@@ -108,20 +108,20 @@ export const AuditProvider = ({ children }) => {
       return { success: false, error: "No data" };
     }
 
-    const payload = {
-      timestamp: new Date().toISOString(),
+    // Many GAS templates expect a raw array of objects.
+    // We'll attach the metadata to each spot instead of wrapping it.
+    const payload = state.spots.map(spot => ({
+      ...spot,
+      submittedAt: new Date().toISOString(),
       deviceId: deviceId,
-      spots: state.spots,
-      metadata: {
-        device: navigator.userAgent,
-        screenSize: `${window.innerWidth}x${window.innerHeight}`
-      }
-    };
+      userAgent: navigator.userAgent
+    }));
 
     const jsonPayload = JSON.stringify(payload);
     const sizeInMB = (encodeURI(jsonPayload).split(/%..|./).length - 1) / (1024 * 1024);
     
-    console.log(`Submitting ${state.spots.length} spots. Payload size: ~${sizeInMB.toFixed(2)} MB`);
+    console.log(`Submitting ${payload.length} spots. Payload size: ~${sizeInMB.toFixed(2)} MB`);
+    console.log("Sample spot data:", payload[0]);
 
     try {
       // Use text/plain to avoid preflight (CORS) issues with GAS
