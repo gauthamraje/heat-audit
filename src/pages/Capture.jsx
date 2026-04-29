@@ -9,6 +9,7 @@ const Capture = () => {
   const { updateCurrentSpot } = useAudit();
   const [step, setStep] = useState(1);
   const [data, setData] = useState({ photo: null, location: '', timeBand: '' });
+  const [loadingLoc, setLoadingLoc] = useState(false);
 
   const handleNext = () => {
     if (step < 3) {
@@ -79,17 +80,20 @@ const Capture = () => {
             <h2>Share Location</h2>
             <p>Share your location pin so we can map this spot. No GPS? Just type the area name.</p>
             
-            <button className="btn btn-primary mt-4 mb-4" onClick={() => {
+            <button className="btn btn-primary mt-4 mb-4" disabled={loadingLoc} onClick={() => {
               if (navigator.geolocation) {
+                setLoadingLoc(true);
                 navigator.geolocation.getCurrentPosition((pos) => {
+                  setLoadingLoc(false);
                   setData({...data, location: `${pos.coords.latitude}, ${pos.coords.longitude}`});
                   handleNext();
                 }, () => {
+                  setLoadingLoc(false);
                   alert("Could not get location. Please type it below.");
                 });
               }
             }}>
-              <MapPin size={20} style={{ marginRight: '8px' }} /> Get GPS Location
+              {loadingLoc ? "Locating..." : <><MapPin size={20} style={{ marginRight: '8px' }} /> Get GPS Location</>}
             </button>
             
             <div style={{ textAlign: 'center', margin: '16px 0', color: 'var(--text-muted)', fontWeight: '600' }}>OR</div>

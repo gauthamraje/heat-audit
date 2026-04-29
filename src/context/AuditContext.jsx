@@ -94,17 +94,17 @@ export const AuditProvider = ({ children }) => {
     }
 
     try {
-      const response = await fetch(url, {
+      await fetch(url, {
         method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "text/plain",
+        },
         body: JSON.stringify(state.spots),
       });
 
-      const result = await response.json();
-      if (result.status === "success") {
-        return { success: true };
-      } else {
-        return { success: false, error: result.message };
-      }
+      // With no-cors we get an opaque response, so we assume success if no network error
+      return { success: true };
     } catch (e) {
       console.error("Submission failed", e);
       return { success: false, error: e.toString() };
