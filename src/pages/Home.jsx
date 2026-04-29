@@ -6,12 +6,21 @@ import { motion } from 'framer-motion';
 
 const Home = () => {
   const navigate = useNavigate();
-  const { state, stopCount, hasPathStop, hasEntryStop } = useAudit();
+  const { state, stopCount, hasPathStop, hasEntryStop, resetAudit } = useAudit();
 
-  if (state.isComplete) {
-    navigate('/summary');
-    return null;
-  }
+  React.useEffect(() => {
+    if (state.isComplete) {
+      navigate('/summary');
+    }
+  }, [state.isComplete, navigate]);
+
+  if (state.isComplete) return null;
+
+  const handleClearAll = () => {
+    if (window.confirm("Are you sure you want to clear all logged spots and start over?")) {
+      resetAudit();
+    }
+  };
 
   return (
     <motion.div 
@@ -36,15 +45,15 @@ const Home = () => {
         <h2 className="mb-2" style={{ fontSize: '1.1rem' }}>Your Progress</h2>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <div style={{ fontSize: '2rem', fontWeight: '800' }}>{stopCount}/4</div>
+            <div style={{ fontSize: '2rem', fontWeight: '800' }}>{stopCount}</div>
             <div style={{ opacity: 0.9, fontSize: '0.9rem' }}>Spots Logged</div>
           </div>
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: '0.85rem', marginBottom: '4px', opacity: hasPathStop ? 1 : 0.7 }}>
-              {hasPathStop ? '✅' : '❌'} Path/Transit
+              {hasPathStop ? '✅' : '⚪'} Path/Transit
             </div>
             <div style={{ fontSize: '0.85rem', opacity: hasEntryStop ? 1 : 0.7 }}>
-              {hasEntryStop ? '✅' : '❌'} Entry/Work
+              {hasEntryStop ? '✅' : '⚪'} Entry/Work
             </div>
           </div>
         </div>
@@ -55,15 +64,33 @@ const Home = () => {
           <MapPin size={20} style={{ marginRight: '8px' }} /> Log a Spot
         </button>
         
-        {stopCount >= 4 && hasPathStop && hasEntryStop && (
+        {stopCount > 0 && (
           <button className="btn btn-outline mb-4" onClick={() => navigate('/summary')}>
             <CheckCircle size={20} style={{ marginRight: '8px' }} /> I'm Done
           </button>
         )}
 
-        <button className="btn btn-secondary">
+        <button className="btn btn-secondary mb-4">
           <Info size={20} style={{ marginRight: '8px' }} /> How it Works
         </button>
+
+        {stopCount > 0 && (
+          <button 
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: 'var(--text-muted)', 
+              fontSize: '0.8rem', 
+              textDecoration: 'underline', 
+              cursor: 'pointer',
+              width: '100%',
+              marginTop: '8px'
+            }} 
+            onClick={handleClearAll}
+          >
+            Clear All progress
+          </button>
+        )}
       </div>
     </motion.div>
   );

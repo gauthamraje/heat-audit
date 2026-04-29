@@ -40,10 +40,13 @@ const Checklist = () => {
     return questions.filter(q => !q.condition || q.condition(answers));
   }, [questions, state.currentSpot?.answers]);
 
-  if (!state.currentSpot) {
-    navigate('/');
-    return null;
-  }
+  React.useEffect(() => {
+    if (!state.currentSpot) {
+      navigate('/');
+    }
+  }, [state.currentSpot, navigate]);
+
+  if (!state.currentSpot) return null;
 
   const activeQuestion = visibleQuestions[currentIdx];
 

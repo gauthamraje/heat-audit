@@ -28,6 +28,50 @@ const Capture = () => {
     }
   };
 
+  const compressImage = (base64Str) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = base64Str;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 1024;
+        const MAX_HEIGHT = 1024;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.7)); // 0.7 quality JPEG
+      };
+    });
+  };
+
+  const handlePhotoUpload = async (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const compressed = await compressImage(reader.result);
+        setData({...data, photo: compressed});
+        setTimeout(handleNext, 500);
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    }
+  };
+
   return (
     <motion.div initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="page">
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
@@ -53,16 +97,13 @@ const Capture = () => {
             <div className="card text-center interactive mt-4" style={{ padding: '48px 24px', border: '2px dashed #ccc' }}>
               <Camera size={48} style={{ color: 'var(--text-muted)', marginBottom: '16px' }} />
               <div style={{ fontWeight: '600' }}>Tap to Open Camera</div>
-              <input type="file" accept="image/*" capture="environment" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} onChange={(e) => {
-                if (e.target.files && e.target.files[0]) {
-                  const reader = new FileReader();
-                  reader.onloadend = () => {
-                    setData({...data, photo: reader.result});
-                    setTimeout(handleNext, 500);
-                  };
-                  reader.readAsDataURL(e.target.files[0]);
-                }
-              }} />
+              <input 
+                type="file" 
+                accept="image/*" 
+                capture="environment" 
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} 
+                onChange={handlePhotoUpload} 
+              />
             </div>
 
             {data.photo && (
