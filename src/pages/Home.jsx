@@ -87,6 +87,12 @@ const Home = () => {
     }
   };
 
+  const skipProfile = () => {
+    updateUserProfile({ name: "Anonymous", phone: "N/A" });
+    setShowProfile(false);
+    navigate('/location-type');
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0 }} 
@@ -204,7 +210,11 @@ const Home = () => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="modal-overlay">
             <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="card modal-content" style={{ maxWidth: '400px' }}>
               <h2 className="mb-2">{t.profileTitle}</h2>
-              <p className="mb-6">{t.profileDesc}</p>
+              <p className="mb-4" style={{ fontSize: '0.95rem' }}>{t.profileDesc}</p>
+              
+              <div style={{ background: '#FFF5F5', color: '#C53030', padding: '12px', borderRadius: '8px', fontSize: '0.85rem', marginBottom: '20px' }}>
+                ℹ️ {t.profileNotice}
+              </div>
               
               <div className="input-group">
                 <label className="input-label">{t.nameLabel}</label>
@@ -228,9 +238,14 @@ const Home = () => {
                 />
               </div>
 
-              <button className="btn btn-primary" onClick={saveProfile}>
-                {t.profileReady}
-              </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <button className="btn btn-primary" onClick={saveProfile}>
+                  {t.profileReady}
+                </button>
+                <button className="btn btn-secondary" onClick={skipProfile} style={{ background: 'transparent', border: 'none', textDecoration: 'underline' }}>
+                  {t.profileSkip}
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
