@@ -133,7 +133,62 @@ export const AuditProvider = ({ children }) => {
     });
   }, [state.language]);
 
+  const submitSingleSpot = React.useCallback(async (spot) => {
+    const url = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
+    if (!url) return { success: false, error: "No URL" };
+
+    const payload = [{
+      ...spot,
+      submittedAt: new Date().toISOString(),
+      deviceId: deviceId,
+      language: state.language,
+      rainfallContext: state.rainfallContext,
+      userAgent: navigator.userAgent
+    }];
+
+    try {
+      await fetch(url, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify(payload),
+      });
+      return { success: true };
+    } catch (e) {
+      console.error("Single spot submission failed", e);
+      return { success: false, error: e.toString() };
+    }
+  }, [deviceId, state.language, state.rainfallContext]);
+
+  const submitReflections = React.useCallback(async () => {
+    const url = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
+    if (!url) return { success: false, error: "No URL" };
+
+    const payload = [{
+      type: 'REFLECTION_ONLY',
+      submittedAt: new Date().toISOString(),
+      deviceId: deviceId,
+      language: state.language,
+      reflections: state.reflections,
+      userAgent: navigator.userAgent
+    }];
+
+    try {
+      await fetch(url, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify(payload),
+      });
+      return { success: true };
+    } catch (e) {
+      console.error("Reflections submission failed", e);
+      return { success: false, error: e.toString() };
+    }
+  }, [deviceId, state.language, state.reflections]);
+
   const submitAuditData = React.useCallback(async () => {
+
     const url = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
     if (!url) {
       console.warn("VITE_GOOGLE_SCRIPT_URL is not set. Data will not be submitted.");
@@ -196,6 +251,8 @@ export const AuditProvider = ({ children }) => {
       completeCurrentSpot,
       completeAudit,
       resetAudit,
+      submitSingleSpot,
+      submitReflections,
       submitAuditData,
       stopCount,
       hasPathStop,

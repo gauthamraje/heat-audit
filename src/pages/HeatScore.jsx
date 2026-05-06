@@ -17,10 +17,15 @@ const HeatScore = () => {
     { val: 4, label: t.score4, desc: t.score4Desc, color: '#FF5A5F', icon: '🌋' },
   ];
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     if (selected) {
+      const finalSpot = { ...state.currentSpot, heatScore: selected };
       updateCurrentSpot({ heatScore: selected });
       completeCurrentSpot();
+      
+      // Submit immediately
+      submitSingleSpot(finalSpot);
+      
       navigate('/'); // Go back to home to log more spots or finish
     }
   };

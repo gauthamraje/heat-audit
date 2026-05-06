@@ -8,7 +8,7 @@ import { translations } from '../translations';
 
 const Summary = () => {
   const navigate = useNavigate();
-  const { state, stopCount, completeAudit, submitAuditData, resetAudit, updateReflections } = useAudit();
+  const { state, stopCount, completeAudit, submitReflections, resetAudit, updateReflections } = useAudit();
   const [uploadState, setUploadState] = useState('idle'); // idle, uploading, success, error
   const [submitted, setSubmitted] = useState(false);
   const [reflectionStep, setReflectionStep] = useState(0); // 0, 1, 2, 3 (3 is final card)
@@ -23,11 +23,11 @@ const Summary = () => {
 
   // Handle submission when they reach the final card
   useEffect(() => {
-    if (submitted || stopCount === 0 || reflectionStep < 3) return;
+    if (submitted || reflectionStep < 3) return;
     
     const doSubmit = async () => {
       setUploadState('uploading');
-      const res = await submitAuditData();
+      const res = await submitReflections();
       if (res.success) {
         setUploadState('success');
         setSubmitted(true);
@@ -43,7 +43,7 @@ const Summary = () => {
     };
     
     doSubmit();
-  }, [submitAuditData, stopCount, submitted, reflectionStep]);
+  }, [submitReflections, submitted, reflectionStep]);
 
   const scoreCounts = state.spots.reduce((acc, spot) => {
     const s = spot.heatScore;
