@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useAudit } from '../context/AuditContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Navigation, Bus, Building, Wrench, ArrowLeft, MapPin } from 'lucide-react';
-import { translations } from '../translations';
+import { useTranslation } from '../hooks/useTranslation';
 
 const LocationType = () => {
   const navigate = useNavigate();
   const { state, startNewSpot } = useAudit();
   const [selected, setSelected] = useState(null);
   const [confirming, setConfirming] = useState(false);
-  const t = translations[state.language].location;
+  const t = useTranslation('location');
 
   const TYPES = [
     { id: 'A', group: 'STREET', label: t.typeA, desc: t.typeADesc, icon: Navigation },

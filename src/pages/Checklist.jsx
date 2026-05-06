@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useAudit } from '../context/AuditContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
-import { translations } from '../translations';
+import { useTranslation } from '../hooks/useTranslation';
 
 const Checklist = () => {
   const navigate = useNavigate();
   const { state, answerQuestion } = useAudit();
   const [currentIdx, setCurrentIdx] = useState(0);
-  const t = translations[state.language].checklist;
+  const t = useTranslation('checklist');
 
   const questions = useMemo(() => {
     if (!state.currentSpot) return [];

@@ -4,7 +4,7 @@ import { useAudit } from '../context/AuditContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, Share2, Map, UploadCloud, AlertCircle, RefreshCw, MessageCircle } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { translations } from '../translations';
+import { useTranslation } from '../hooks/useTranslation';
 
 const Summary = () => {
   const navigate = useNavigate();
@@ -12,7 +12,7 @@ const Summary = () => {
   const [uploadState, setUploadState] = useState('idle'); // idle, uploading, success, error
   const [submitted, setSubmitted] = useState(false);
   const [reflectionStep, setReflectionStep] = useState(0); // 0, 1, 2, 3 (3 is final card)
-  const t = translations[state.language].summary;
+  const t = useTranslation('summary');
 
   // Mark as complete once on mount
   useEffect(() => {

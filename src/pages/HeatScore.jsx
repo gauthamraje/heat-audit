@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAudit } from '../context/AuditContext';
 import { motion } from 'framer-motion';
-import { translations } from '../translations';
+import { useTranslation } from '../hooks/useTranslation';
 
 const HeatScore = () => {
   const navigate = useNavigate();
   const { state, updateCurrentSpot, completeCurrentSpot, submitSingleSpot } = useAudit();
   const [selected, setSelected] = useState(null);
-  const t = translations[state.language].score;
+  const t = useTranslation('score');
 
   const SCORES = [
     { val: 1, label: t.score1, desc: t.score1Desc, color: '#4A90E2', icon: '❄️' },

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAudit } from '../context/AuditContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, MapPin, Clock, ArrowLeft, CloudRain } from 'lucide-react';
-import { translations } from '../translations';
+import { useTranslation } from '../hooks/useTranslation';
 
 const Capture = () => {
   const navigate = useNavigate();
@@ -11,7 +11,7 @@ const Capture = () => {
   const [step, setStep] = useState(1);
   const [data, setData] = useState({ photo: null, location: '', timeBand: '' });
   const [loadingLoc, setLoadingLoc] = useState(false);
-  const t = translations[state.language].capture;
+  const t = useTranslation('capture');
 
   const handleNext = () => {
     if (step < 3) {

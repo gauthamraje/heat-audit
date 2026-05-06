@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useAudit } from '../context/AuditContext';
 import { PlayCircle, MapPin, CheckCircle, Info, ShieldAlert } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { translations } from '../translations';
+import { useTranslation } from '../hooks/useTranslation';
 
 const Home = () => {
   const navigate = useNavigate();
   const { state, stopCount, hasPathStop, hasEntryStop, resetAudit, setLanguage, setHasSeenSafety } = useAudit();
   const [showSafety, setShowSafety] = useState(false);
-  const t = translations[state.language].home;
+  const t = useTranslation('home');
 
   React.useEffect(() => {
     if (state.isComplete) {
