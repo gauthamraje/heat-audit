@@ -6,7 +6,7 @@ import { translations } from '../translations';
 
 const HeatScore = () => {
   const navigate = useNavigate();
-  const { state, updateCurrentSpot, completeCurrentSpot } = useAudit();
+  const { state, updateCurrentSpot, completeCurrentSpot, submitSingleSpot } = useAudit();
   const [selected, setSelected] = useState(null);
   const t = translations[state.language].score;
 
