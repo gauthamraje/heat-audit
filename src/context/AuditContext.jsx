@@ -141,17 +141,15 @@ export const AuditProvider = ({ children }) => {
   }, []);
 
   const resetAudit = React.useCallback(() => {
-    localStorage.removeItem(LOCAL_STORAGE_KEY);
-    setState({ 
-      spots: [], 
-      currentSpot: null, 
+    setState(prev => ({
+      ...prev,
+      spots: [],
+      currentSpot: null,
       isComplete: false,
-      language: state.language, // Keep language
-      hasSeenSafety: false,
       rainfallContext: null,
       reflections: { r1: "", r2: "", r3: "" }
-    });
-  }, [state.language]);
+    }));
+  }, []);
 
   const submitSingleSpot = React.useCallback(async (spot) => {
     const url = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
@@ -235,7 +233,7 @@ export const AuditProvider = ({ children }) => {
 
     const jsonPayload = JSON.stringify(payload);
     const sizeInMB = (encodeURI(jsonPayload).split(/%..|./).length - 1) / (1024 * 1024);
-    
+
     console.log(`Submitting ${payload.length} spots. Payload size: ~${sizeInMB.toFixed(2)} MB`);
 
     try {
