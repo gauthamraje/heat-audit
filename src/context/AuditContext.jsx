@@ -7,13 +7,7 @@ const LOCAL_STORAGE_KEY = 'heat_audit_state_v1';
 export const AuditProvider = ({ children }) => {
   // Try to load state from localStorage
   const loadState = () => {
-    try {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error("Failed to load state", e);
-    }
-    return {
+    const defaults = {
       spots: [], // Completed spots
       currentSpot: null, // Draft of current spot
       isComplete: false,
@@ -26,6 +20,21 @@ export const AuditProvider = ({ children }) => {
         r3: ""
       }
     };
+    try {
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Ensure language is valid
+        if (parsed.language && !['EN', 'HI', 'KN'].includes(parsed.language)) {
+          parsed.language = 'EN';
+        }
+        // Merge with defaults to ensure new fields (like language) exist
+        return { ...defaults, ...parsed };
+      }
+    } catch (e) {
+      console.error("Failed to load state", e);
+    }
+    return defaults;
   };
 
   const [state, setState] = useState(loadState);
