@@ -51,6 +51,23 @@ const Summary = () => {
     return acc;
   }, {});
 
+  const handleStartNew = () => {
+    resetAudit();
+    navigate('/');
+  };
+
+  const reflections = [
+    { key: 'r1', text: t.reflectionR1 },
+    { key: 'r2', text: t.reflectionR2 },
+    { key: 'r3', text: t.reflectionR3 },
+  ];
+
+  const handleReflectionNext = (val) => {
+    const key = reflections[reflectionStep].key;
+    updateReflections({ [key]: val });
+    setReflectionStep(reflectionStep + 1);
+  };
+
   const handleShare = async () => {
     const text = state.language === 'EN' 
       ? `I just completed a Heat Exposure Audit and mapped ${stopCount} spots in my neighbourhood! 🌡️ Check out the HeatWatch project. #SolveNinja #HeatWatch`
