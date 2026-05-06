@@ -17,6 +17,14 @@ export const AuditProvider = ({ children }) => {
       spots: [], // Completed spots
       currentSpot: null, // Draft of current spot
       isComplete: false,
+      language: 'EN',
+      hasSeenSafety: false,
+      rainfallContext: null,
+      reflections: {
+        r1: "",
+        r2: "",
+        r3: ""
+      }
     };
   };
 
@@ -37,7 +45,26 @@ export const AuditProvider = ({ children }) => {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
   }, [state]);
 
-  const startNewSpot = (locType, locGroup, label) => {
+  const setLanguage = (lang) => {
+    setState(prev => ({ ...prev, language: lang }));
+  };
+
+  const setHasSeenSafety = (val) => {
+    setState(prev => ({ ...prev, hasSeenSafety: val }));
+  };
+
+  const setRainfallContext = (val) => {
+    setState(prev => ({ ...prev, rainfallContext: val }));
+  };
+
+  const updateReflections = (updates) => {
+    setState(prev => ({
+      ...prev,
+      reflections: { ...prev.reflections, ...updates }
+    }));
+  };
+
+  const startNewSpot = (locType, locGroup, label, isIndoor = false) => {
     setState(prev => ({
       ...prev,
       currentSpot: {
@@ -45,6 +72,7 @@ export const AuditProvider = ({ children }) => {
         type: locType, // A, B, C, D
         group: locGroup, // STREET or ENTRY
         label: label, // "Open Path", etc.
+        isIndoor,
         photo: null,
         location: null,
         timeBand: null,
@@ -94,8 +122,16 @@ export const AuditProvider = ({ children }) => {
 
   const resetAudit = React.useCallback(() => {
     localStorage.removeItem(LOCAL_STORAGE_KEY);
-    setState({ spots: [], currentSpot: null, isComplete: false });
-  }, []);
+    setState({ 
+      spots: [], 
+      currentSpot: null, 
+      isComplete: false,
+      language: state.language, // Keep language
+      hasSeenSafety: false,
+      rainfallContext: null,
+      reflections: { r1: "", r2: "", r3: "" }
+    });
+  }, [state.language]);
 
   const submitAuditData = React.useCallback(async () => {
     const url = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
@@ -109,12 +145,14 @@ export const AuditProvider = ({ children }) => {
       return { success: false, error: "No data" };
     }
 
-    // Many GAS templates expect a raw array of objects.
-    // We'll attach the metadata to each spot instead of wrapping it.
+    // Attach metadata and session-level info to each spot
     const payload = state.spots.map(spot => ({
       ...spot,
       submittedAt: new Date().toISOString(),
       deviceId: deviceId,
+      language: state.language,
+      rainfallContext: state.rainfallContext,
+      reflections: state.reflections,
       userAgent: navigator.userAgent
     }));
 
@@ -122,10 +160,8 @@ export const AuditProvider = ({ children }) => {
     const sizeInMB = (encodeURI(jsonPayload).split(/%..|./).length - 1) / (1024 * 1024);
     
     console.log(`Submitting ${payload.length} spots. Payload size: ~${sizeInMB.toFixed(2)} MB`);
-    console.log("Sample spot data:", payload[0]);
 
     try {
-      // Use text/plain to avoid preflight (CORS) issues with GAS
       await fetch(url, {
         method: "POST",
         mode: "no-cors",
@@ -135,13 +171,12 @@ export const AuditProvider = ({ children }) => {
         body: jsonPayload,
       });
 
-      // With no-cors we assume success if no network error occurs
       return { success: true };
     } catch (e) {
       console.error("Submission failed", e);
       return { success: false, error: e.toString() };
     }
-  }, [state.spots, deviceId]);
+  }, [state.spots, state.language, state.rainfallContext, state.reflections, deviceId]);
 
   // Helper stats
   const stopCount = state.spots.length;
@@ -151,6 +186,10 @@ export const AuditProvider = ({ children }) => {
   return (
     <AuditContext.Provider value={{
       state,
+      setLanguage,
+      setHasSeenSafety,
+      setRainfallContext,
+      updateReflections,
       startNewSpot,
       updateCurrentSpot,
       answerQuestion,

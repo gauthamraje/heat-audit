@@ -2,21 +2,28 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAudit } from '../context/AuditContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, MapPin, Clock, ArrowLeft, Image as ImageIcon } from 'lucide-react';
+import { Camera, MapPin, Clock, ArrowLeft, CloudRain } from 'lucide-react';
+import { translations } from '../translations';
 
 const Capture = () => {
   const navigate = useNavigate();
-  const { updateCurrentSpot } = useAudit();
+  const { state, stopCount, updateCurrentSpot, setRainfallContext } = useAudit();
   const [step, setStep] = useState(1);
   const [data, setData] = useState({ photo: null, location: '', timeBand: '' });
   const [loadingLoc, setLoadingLoc] = useState(false);
+  const t = translations[state.language].capture;
 
   const handleNext = () => {
     if (step < 3) {
       setStep(step + 1);
     } else {
       updateCurrentSpot(data);
-      navigate('/checklist');
+      // If it's the first spot and we don't have rainfall context yet, go to rainfall step
+      if (stopCount === 0 && !state.rainfallContext) {
+        setStep(4);
+      } else {
+        navigate('/checklist');
+      }
     }
   };
 
@@ -72,6 +79,21 @@ const Capture = () => {
     }
   };
 
+  const timeBands = [
+    { label: t.morning, value: 'Morning' },
+    { label: t.midday, value: 'Midday' },
+    { label: t.afternoon, value: 'Afternoon' },
+    { label: t.evening, value: 'Evening' },
+  ];
+
+  const rainOptions = [
+    { label: t.rainToday, value: 'today_yesterday' },
+    { label: t.rain23, value: '2-3_days' },
+    { label: t.rain47, value: '4-7_days' },
+    { label: t.rainWeek, value: 'more_than_week' },
+    { label: t.rainNotSure, value: 'not_sure' },
+  ];
+
   return (
     <motion.div initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="page">
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
@@ -79,20 +101,21 @@ const Capture = () => {
           <ArrowLeft />
         </button>
         <div style={{ flex: 1, textAlign: 'center', fontWeight: '600' }}>
-          Step {step} of 3
+          {step <= 3 ? `Step ${step} of 3` : 'Context'}
         </div>
         <div style={{ width: '40px' }} />
       </div>
 
       <div className="progress-container mb-8">
-        <div className="progress-bar" style={{ width: `${(step / 3) * 100}%` }} />
+        <div className="progress-bar" style={{ width: `${Math.min(step, 3) / 3 * 100}%` }} />
       </div>
 
       <AnimatePresence mode="wait">
         {step === 1 && (
           <motion.div key="s1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, x: -20 }} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <h2>Take a Photo</h2>
-            <p>Show the sky, shade, surfaces, and anyone present if you can. Hold your phone horizontal for wider shots.</p>
+            <h2>{t.photoStep}</h2>
+            <p>{t.photoDesc}</p>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{t.photoHint}</p>
             
             <div className="card text-center interactive mt-4" style={{ padding: '48px 24px', border: '2px dashed #ccc' }}>
               <Camera size={48} style={{ color: 'var(--text-muted)', marginBottom: '16px' }} />
@@ -118,8 +141,8 @@ const Capture = () => {
 
         {step === 2 && (
           <motion.div key="s2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <h2>Share Location</h2>
-            <p>Share your location pin so we can map this spot. No GPS? Just type the area name.</p>
+            <h2>{t.locStep}</h2>
+            <p>{t.locDesc}</p>
             
             <button className="btn btn-primary mt-4 mb-4" disabled={loadingLoc} onClick={() => {
               if (navigator.geolocation) {
@@ -151,20 +174,40 @@ const Capture = () => {
         )}
 
         {step === 3 && (
-          <motion.div key="s3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <h2>Time of Observation</h2>
+          <motion.div key="s3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <h2>{t.timeStep}</h2>
             <p>What time of day is it roughly right now?</p>
             
             <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {['🌅 Morning (6–10 AM)', '☀️ Midday (10–2 PM)', '🌤 Afternoon (2–6 PM)'].map(t => (
-                <button key={t} className={`btn ${data.timeBand === t ? 'btn-primary' : 'btn-secondary'}`} onClick={() => {
-                  setData({...data, timeBand: t});
-                  setTimeout(() => {
-                    updateCurrentSpot({...data, timeBand: t});
-                    navigate('/checklist');
-                  }, 300);
+              {timeBands.map(tb => (
+                <button key={tb.value} className={`btn ${data.timeBand === tb.value ? 'btn-primary' : 'btn-secondary'}`} onClick={() => {
+                  setData({...data, timeBand: tb.value});
+                  setTimeout(handleNext, 300);
                 }}>
-                  {t}
+                  {tb.label}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {step === 4 && (
+          <motion.div key="s4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <div className="text-center mb-6">
+              <div style={{ display: 'inline-block', background: 'rgba(255, 90, 95, 0.1)', color: 'var(--primary)', padding: '16px', borderRadius: '50%', marginBottom: '16px' }}>
+                <CloudRain size={32} />
+              </div>
+              <h2>{t.rainfallTitle}</h2>
+              <p>Rain can cool surfaces significantly — this helps us read your heat data in context.</p>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {rainOptions.map(opt => (
+                <button key={opt.value} className="btn btn-secondary" style={{ textAlign: 'left', justifyContent: 'flex-start' }} onClick={() => {
+                  setRainfallContext(opt.value);
+                  navigate('/checklist');
+                }}>
+                  {opt.label}
                 </button>
               ))}
             </div>

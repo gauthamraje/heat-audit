@@ -3,37 +3,92 @@ import { useNavigate } from 'react-router-dom';
 import { useAudit } from '../context/AuditContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
-
-const COMMON_QUESTIONS = [
-  { id: 'q1', text: 'Is this spot in direct sunlight right now?', options: ['☀️ Yes, full sun', '🌤 Partially', '⛅ No, shaded'] },
-  { id: 'q2', text: 'Touch a surface nearby. Is it hot?', options: ['🔥 Yes, very hot', '🌡 Somewhat warm', '❄️ No, cool'] },
-  { id: 'q3', text: 'Can you feel a breeze or ventilation?', options: ['💨 Yes, good airflow', '🌬 A little', '🚫 None at all'] },
-  { id: 'q4', text: 'Is drinking water available nearby (2-min walk)?', options: ['💧 Yes, nearby', '❌ No, not that I can see'] },
-  { id: 'q5', text: 'Is there a shaded place where someone could sit?', options: ['✅ Yes', '❌ No'] },
-];
-
-const STREET_QUESTIONS = [
-  { id: 'q6', text: 'Is there overhead shade (trees, roof, canopy)?', options: ['🌳 Yes, good cover', '🌤 Only partial', '❌ None at all'] },
-  { id: 'q7', text: 'Are there people visibly at or moving through this spot right now?', options: ['👥 Yes, several', '👤 Just 1–2', '❌ No one'] },
-  { id: 'q8', text: 'Can you see signs of heat stress in the people here?', options: ['😓 Yes, clearly', '🤔 A little', '✅ No visible signs'], condition: (answers) => answers['q7'] !== '❌ No one' }
-];
-
-const ENTRY_QUESTIONS = [
-  { id: 'q6', text: 'Could someone comfortably wait at this spot for 5 minutes or more?', options: ['✅ Yes, comfortably', '😰 Sort of', '❌ No, too hot/cramped'] },
-  { id: 'q7', text: 'Are there workers or people waiting at this spot right now?', options: ['👥 Yes', '❌ No / Not sure'] },
-  { id: 'q8', text: 'Do the people waiting here have a place to sit?', options: ['✅ Yes, seating exists', '❌ No, standing only'], condition: (answers) => answers['q7'] === '👥 Yes' }
-];
+import { translations } from '../translations';
 
 const Checklist = () => {
   const navigate = useNavigate();
   const { state, answerQuestion } = useAudit();
   const [currentIdx, setCurrentIdx] = useState(0);
+  const t = translations[state.language].checklist;
 
   const questions = useMemo(() => {
     if (!state.currentSpot) return [];
-    const groupQ = state.currentSpot.group === 'STREET' ? STREET_QUESTIONS : ENTRY_QUESTIONS;
-    return [...COMMON_QUESTIONS, ...groupQ];
-  }, [state.currentSpot]);
+    const isIndoor = state.currentSpot.isIndoor;
+    const group = state.currentSpot.group;
+
+    const qs = [];
+
+    // Q1 - Sunlight
+    qs.push({
+      id: 'q1',
+      text: isIndoor ? t.q1Work : t.q1,
+      options: isIndoor 
+        ? [t.q1WorkYes, t.q1WorkSometimes, t.q1WorkNo]
+        : [t.q1Yes, t.q1Partial, t.q1Shaded]
+    });
+
+    // Q2 - Surface Heat
+    qs.push({
+      id: 'q2',
+      text: t.q2,
+      options: [t.q2Hot, t.q2Warm, t.q2Cool]
+    });
+
+    // Q3 - Airflow
+    qs.push({
+      id: 'q3',
+      text: t.q3,
+      options: [t.q3Good, t.q3Little, t.q3None]
+    });
+
+    // Q4 - Water Access (Skipped for Indoor)
+    if (!isIndoor) {
+      qs.push({
+        id: 'q4',
+        text: t.q4,
+        options: [t.q4Free, t.q4Paid, t.q4None]
+      });
+    }
+
+    // Q5 - Seating
+    qs.push({
+      id: 'q5',
+      text: isIndoor ? t.q5Work : t.q5,
+      options: isIndoor
+        ? [t.q5Bench, t.q5Floor, t.q5None]
+        : [t.q5Bench, t.q5Ledge, t.q5None]
+    });
+
+    // Group Specific Q6-Q8
+    if (group === 'STREET') {
+      qs.push({ id: 'q6', text: t.q6Street, options: [t.q1Yes, t.q1Partial, t.q1Shaded] }); // Reusing sunlight labels for yes/no/partial if needed, but spec says trees/roof/etc.
+      // Wait, let's use the specific labels from spec
+      qs.find(q => q.id === 'q6').options = [t.checklist?.yes || "Yes", t.checklist?.partial || "Partial", t.checklist?.no || "No"];
+      
+      // Let's refine the street Q6-Q8 options based on translations
+      const q6 = { id: 'q6', text: t.q6Street, options: ["🌳 Yes, good cover", "🌤 Only partial", "❌ None at all"] };
+      const q7 = { id: 'q7', text: t.q7Street, options: ["👥 Yes, several", "👤 Just 1–2", "❌ No one"] };
+      const q8 = { 
+        id: 'q8', 
+        text: t.q8Street, 
+        options: ["😓 Yes, clearly", "🤔 Slightly", "✅ No signs"],
+        condition: (ans) => ans['q7'] && ans['q7'] !== "❌ No one"
+      };
+      qs.push(q6, q7, q8);
+    } else {
+      const q6 = { id: 'q6', text: t.q6Entry, options: ["✅ Yes, comfortably", "😰 Sort of", "❌ No — too hot/cramped"] };
+      const q7 = { id: 'q7', text: t.q7Entry, options: ["👥 Yes", "❌ No / Not sure"] };
+      const q8 = { 
+        id: 'q8', 
+        text: t.q8Entry, 
+        options: ["✅ Yes, seating exists", "❌ No — standing only"],
+        condition: (ans) => ans['q7'] && ans['q7'] === "👥 Yes"
+      };
+      qs.push(q6, q7, q8);
+    }
+
+    return qs;
+  }, [state.currentSpot, t, state.language]);
 
   const visibleQuestions = useMemo(() => {
     const answers = state.currentSpot?.answers || {};
