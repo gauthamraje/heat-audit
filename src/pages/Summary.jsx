@@ -51,21 +51,26 @@ const Summary = () => {
     return acc;
   }, {});
 
-  const handleStartNew = () => {
-    resetAudit();
-    navigate('/');
-  };
+  const handleShare = async () => {
+    const text = state.language === 'EN' 
+      ? `I just completed a Heat Exposure Audit and mapped ${stopCount} spots in my neighbourhood! 🌡️ Check out the HeatWatch project. #SolveNinja #HeatWatch`
+      : `मैंने अभी हीट एक्सपोजर ऑडिट पूरा किया और अपने पड़ोस में ${stopCount} स्थानों का मानचित्रण किया! 🌡️ #SolveNinja #HeatWatch`;
 
-  const reflections = [
-    { key: 'r1', text: t.reflectionR1 },
-    { key: 'r2', text: t.reflectionR2 },
-    { key: 'r3', text: t.reflectionR3 },
-  ];
-
-  const handleReflectionNext = (val) => {
-    const key = reflections[reflectionStep].key;
-    updateReflections({ [key]: val });
-    setReflectionStep(reflectionStep + 1);
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'HeatWatch Impact',
+          text: text,
+          url: window.location.origin
+        });
+      } catch (err) {
+        console.log("Share failed", err);
+      }
+    } else {
+      // Fallback: Copy to clipboard
+      navigator.clipboard.writeText(text);
+      alert(state.language === 'EN' ? "Impact message copied to clipboard!" : "प्रभाव संदेश क्लिपಬೋರ್ಡ್‌ಗೆ ನಕಲಿಸಲಾಗಿದೆ!");
+    }
   };
 
   return (
@@ -82,7 +87,7 @@ const Summary = () => {
             {reflectionStep === 0 && (
               <div className="text-center mb-8">
                 <div style={{ display: 'inline-block', background: 'rgba(255, 90, 95, 0.1)', color: 'var(--primary)', padding: '16px', borderRadius: '50%', marginBottom: '16px' }}>
-                  <MessageCircle size={32} />
+                   <MessageCircle size={32} />
                 </div>
                 <h2>{t.reflectionTitle}</h2>
                 <p>No right or wrong answers. Just share what you genuinely think.</p>
@@ -200,7 +205,7 @@ const Summary = () => {
             )}
 
             <div className="mt-auto" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <button className="btn btn-primary" disabled={uploadState === 'uploading'}>
+              <button className="btn btn-primary" onClick={handleShare} disabled={uploadState === 'uploading'}>
                 <Share2 size={20} style={{ marginRight: '8px' }} /> {t.share}
               </button>
               <button className="btn btn-secondary" onClick={handleStartNew}>

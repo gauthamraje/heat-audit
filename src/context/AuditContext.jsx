@@ -18,6 +18,10 @@ export const AuditProvider = ({ children }) => {
         r1: "",
         r2: "",
         r3: ""
+      },
+      userProfile: {
+        name: "",
+        phone: ""
       }
     };
     try {
@@ -70,6 +74,13 @@ export const AuditProvider = ({ children }) => {
     setState(prev => ({
       ...prev,
       reflections: { ...prev.reflections, ...updates }
+    }));
+  };
+
+  const updateUserProfile = (updates) => {
+    setState(prev => ({
+      ...prev,
+      userProfile: { ...prev.userProfile, ...updates }
     }));
   };
 
@@ -152,6 +163,7 @@ export const AuditProvider = ({ children }) => {
       deviceId: deviceId,
       language: state.language,
       rainfallContext: state.rainfallContext,
+      userProfile: state.userProfile,
       userAgent: navigator.userAgent
     }];
 
@@ -179,6 +191,7 @@ export const AuditProvider = ({ children }) => {
       deviceId: deviceId,
       language: state.language,
       reflections: state.reflections,
+      userProfile: state.userProfile,
       userAgent: navigator.userAgent
     }];
 
@@ -254,6 +267,7 @@ export const AuditProvider = ({ children }) => {
       setHasSeenSafety,
       setRainfallContext,
       updateReflections,
+      updateUserProfile,
       startNewSpot,
       updateCurrentSpot,
       answerQuestion,

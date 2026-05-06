@@ -7,8 +7,16 @@ import { useTranslation } from '../hooks/useTranslation';
 
 const Home = () => {
   const navigate = useNavigate();
-  const { state, stopCount, hasPathStop, hasEntryStop, resetAudit, setLanguage, setHasSeenSafety } = useAudit();
+  const { state, stopCount, hasPathStop, hasEntryStop, resetAudit, setLanguage, setHasSeenSafety, updateUserProfile } = useAudit();
   const [showSafety, setShowSafety] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [showHow, setShowHow] = useState(false);
+  
+  const [profileDraft, setProfileDraft] = useState({ 
+    name: state.userProfile?.name || '', 
+    phone: state.userProfile?.phone || '' 
+  });
+
   const t = useTranslation('home');
 
   React.useEffect(() => {
@@ -28,6 +36,8 @@ const Home = () => {
   const handleLogSpot = () => {
     if (stopCount === 0 && !state.hasSeenSafety) {
       setShowSafety(true);
+    } else if (stopCount === 0 && !state.userProfile?.name) {
+      setShowProfile(true);
     } else {
       navigate('/location-type');
     }
@@ -59,7 +69,22 @@ const Home = () => {
   const confirmSafety = () => {
     setHasSeenSafety(true);
     setShowSafety(false);
-    navigate('/location-type');
+    // After safety, show profile if missing
+    if (!state.userProfile?.name) {
+      setShowProfile(true);
+    } else {
+      navigate('/location-type');
+    }
+  };
+
+  const saveProfile = () => {
+    if (profileDraft.name && profileDraft.phone) {
+      updateUserProfile(profileDraft);
+      setShowProfile(false);
+      navigate('/location-type');
+    } else {
+      alert("Please fill both name and WhatsApp number.");
+    }
   };
 
   return (
@@ -96,13 +121,6 @@ const Home = () => {
         <p>{t.subtitle}</p>
       </div>
 
-      <div className="video-wrapper mb-6">
-        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexDirection: 'column' }}>
-           <PlayCircle size={48} style={{ opacity: 0.8, marginBottom: '10px' }} />
-           <span>Intro Video Placeholder</span>
-        </div>
-      </div>
-
       <div className="card mb-6" style={{ background: 'var(--primary)', color: 'white' }}>
         <h2 className="mb-2" style={{ fontSize: '1.1rem' }}>{t.progress}</h2>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -132,7 +150,7 @@ const Home = () => {
           </button>
         )}
 
-        <button className="btn btn-secondary mb-4">
+        <button className="btn btn-secondary mb-4" onClick={() => setShowHow(true)}>
           <Info size={20} style={{ marginRight: '8px' }} /> {t.howItWorks}
         </button>
 
@@ -158,30 +176,8 @@ const Home = () => {
       {/* Safety Modal */}
       <AnimatePresence>
         {showSafety && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'rgba(0,0,0,0.8)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 1000,
-              padding: '20px'
-            }}
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              className="card"
-              style={{ maxWidth: '400px', background: 'white' }}
-            >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="modal-overlay">
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="card modal-content" style={{ maxWidth: '400px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', color: '#E53E3E' }}>
                 <ShieldAlert size={32} />
                 <h2 style={{ fontSize: '1.25rem', margin: 0 }}>{t.safetyTitle}</h2>
@@ -196,6 +192,72 @@ const Home = () => {
               </ul>
               <button className="btn btn-primary" onClick={confirmSafety}>
                 {t.safetyReady}
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Profile Modal */}
+      <AnimatePresence>
+        {showProfile && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="modal-overlay">
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="card modal-content" style={{ maxWidth: '400px' }}>
+              <h2 className="mb-2">{t.profileTitle}</h2>
+              <p className="mb-6">{t.profileDesc}</p>
+              
+              <div className="input-group">
+                <label className="input-label">{t.nameLabel}</label>
+                <input 
+                  type="text" 
+                  className="input-field" 
+                  value={profileDraft.name}
+                  onChange={(e) => setProfileDraft({...profileDraft, name: e.target.value})}
+                  placeholder="Ninja Name" 
+                />
+              </div>
+              
+              <div className="input-group">
+                <label className="input-label">{t.phoneLabel}</label>
+                <input 
+                  type="tel" 
+                  className="input-field" 
+                  value={profileDraft.phone}
+                  onChange={(e) => setProfileDraft({...profileDraft, phone: e.target.value})}
+                  placeholder="+91 XXXXX XXXXX" 
+                />
+              </div>
+
+              <button className="btn btn-primary" onClick={saveProfile}>
+                {t.profileReady}
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* How it Works Modal */}
+      <AnimatePresence>
+        {showHow && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="modal-overlay">
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="card modal-content" style={{ maxWidth: '450px' }}>
+              <h2 className="mb-4">{t.howTitle}</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', lineHeight: '1.5' }}>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <span>{t.howStep1}</span>
+                </div>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <span>{t.howStep2}</span>
+                </div>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <span>{t.howStep3}</span>
+                </div>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <span>{t.howStep4}</span>
+                </div>
+              </div>
+              <button className="btn btn-secondary mt-8" onClick={() => setShowHow(false)}>
+                {t.close}
               </button>
             </motion.div>
           </motion.div>

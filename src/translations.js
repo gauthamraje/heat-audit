@@ -16,7 +16,18 @@ export const translations = {
       safety4: "Stay in your own neighbourhood",
       safety5: "If possible, go with a friend",
       safety6: "If you feel dizzy, move indoors",
-      safetyReady: "Got it, I'm ready"
+      safetyReady: "Got it, I'm ready",
+      profileTitle: "Ninja Profile 🥷",
+      profileDesc: "Enter your details to link this audit to your changemaker portfolio.",
+      nameLabel: "Your Name",
+      phoneLabel: "WhatsApp Number",
+      profileReady: "Start My Audit",
+      howTitle: "How HeatWatch Works",
+      howStep1: "📍 Visit 4+ spots in your neighbourhood (Streets, Bus stops, Entry gates).",
+      howStep2: "📷 Take a photo and answer 8 quick questions at each spot.",
+      howStep3: "🌡️ Give a heat score based on how it feels to stand there.",
+      howStep4: "📈 Your data creates a heat map to help the community plan better shade.",
+      close: "Close"
     },
     location: {
       title: "What kind of spot are you at?",
@@ -136,7 +147,18 @@ export const translations = {
       safety4: "अपने ही पड़ोस में रहें",
       safety5: "यदि संभव हो तो मित्र के साथ जाएं",
       safety6: "यदि आप चक्कर महसूस करते हैं, तो घर के अंदर जाएं",
-      safetyReady: "समझ गया, मैं तैयार हूँ"
+      safetyReady: "समझ गया, मैं तैयार हूँ",
+      profileTitle: "निंजा प्रोफाइल 🥷",
+      profileDesc: "इस ऑडिट को अपने पोर्टफोलियो से जोड़ने के लिए अपना विवरण दर्ज करें।",
+      nameLabel: "आपका नाम",
+      phoneLabel: "व्हाट्सएप नंबर",
+      profileReady: "ऑडिट शुरू करें",
+      howTitle: "हीटवॉच कैसे काम करता है",
+      howStep1: "📍 अपने पड़ोस में 4+ स्थानों (सड़कें, बस स्टॉप, प्रवेश द्वार) पर जाएँ।",
+      howStep2: "📷 प्रत्येक स्थान पर एक फोटो लें और 8 त्वरित प्रश्नों के उत्तर दें।",
+      howStep3: "🌡️ वहां खड़े होने पर कैसा महसूस होता है, इसके आधार पर हीट स्कोर दें।",
+      howStep4: "📈 आपका डेटा समुदाय को बेहतर योजना बनाने में मदद करने के लिए हीट मैप बनाता है।",
+      close: "बंद करें"
     },
     location: {
       title: "आप किस तरह के स्थान पर हैं?",
@@ -254,7 +276,18 @@ export const translations = {
       safety2: "ನೀರಿನ ಬಾಟಲಿ ಜೊತೆಗಿರಲಿ - ಹೈಡ್ರೀಕರಿಸಿದ ಸ್ಥಿತಿಯಲ್ಲಿರಿ",
       safety3: "ನೆರಳಿನಲ್ಲಿ ವಿಶ್ರಾಂತಿ ಪಡೆಯಿರಿ",
       safety4: "ನಿಮ್ಮ ನೆರೆಹೊರೆಯಲ್ಲೇ ಇರಿ",
-      safetyReady: "ಸರಿ, ನಾನು ಸಿದ್ಧ"
+      safetyReady: "ಸರಿ, ನಾನು ಸಿದ್ಧ",
+      profileTitle: "ನಿಂಜಾ ಪ್ರೊಫೈಲ್ 🥷",
+      profileDesc: "ನಿಮ್ಮ ವಿವರಗಳನ್ನು ನಮೂದಿಸಿ।",
+      nameLabel: "ನಿಮ್ಮ ಹೆಸರು",
+      phoneLabel: "ವಾಟ್ಸಾಪ್ ಸಂಖ್ಯೆ",
+      profileReady: "ಆಡಿಟ್ ಪ್ರಾರಂಭಿಸಿ",
+      howTitle: "ಹೀಟ್ ವಾಚ್ ಹೇಗೆ ಕೆಲಸ ಮಾಡುತ್ತದೆ",
+      howStep1: "📍 ನಿಮ್ಮ ನೆರೆಹೊರೆಯಲ್ಲಿ 4+ ಸ್ಥಳಗಳಿಗೆ ಭೇಟಿ ನೀಡಿ।",
+      howStep2: "📷 ಪ್ರತಿ ಸ್ಥಳದಲ್ಲಿ ಫೋಟೋ ತೆಗೆಯಿರಿ ಮತ್ತು 8 ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸಿ।",
+      howStep3: "🌡️ ತಾಪಮಾನ ಅಂಕ ನೀಡಿ।",
+      howStep4: "📈 ನಿಮ್ಮ ಡೇಟಾ ಸಮುದಾಯಕ್ಕೆ ಸಹಾಯ ಮಾಡುತ್ತದೆ।",
+      close: "ಮುಚ್ಚಿ"
     },
     location: {
       title: "ನೀವು ಯಾವ ರೀತಿಯ ಸ್ಥಳದಲ್ಲಿದ್ದೀರಿ?",
