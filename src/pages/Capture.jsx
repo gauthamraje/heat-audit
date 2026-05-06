@@ -13,11 +13,11 @@ const Capture = () => {
   const [loadingLoc, setLoadingLoc] = useState(false);
   const t = useTranslation('capture');
 
-  const handleNext = () => {
+  const handleNext = (latestData = data) => {
     if (step < 3) {
       setStep(step + 1);
     } else {
-      updateCurrentSpot(data);
+      updateCurrentSpot(latestData);
       // If it's the first spot and we don't have rainfall context yet, go to rainfall step
       if (stopCount === 0 && !state.rainfallContext) {
         setStep(4);
@@ -72,8 +72,9 @@ const Capture = () => {
       const reader = new FileReader();
       reader.onloadend = async () => {
         const compressed = await compressImage(reader.result);
-        setData({...data, photo: compressed});
-        setTimeout(handleNext, 500);
+        const newData = {...data, photo: compressed};
+        setData(newData);
+        setTimeout(() => handleNext(newData), 500);
       };
       reader.readAsDataURL(e.target.files[0]);
     }
@@ -149,8 +150,9 @@ const Capture = () => {
                 setLoadingLoc(true);
                 navigator.geolocation.getCurrentPosition((pos) => {
                   setLoadingLoc(false);
-                  setData({...data, location: `${pos.coords.latitude}, ${pos.coords.longitude}`});
-                  handleNext();
+                  const newData = {...data, location: `${pos.coords.latitude}, ${pos.coords.longitude}`};
+                  setData(newData);
+                  handleNext(newData);
                 }, () => {
                   setLoadingLoc(false);
                   alert("Could not get location. Please type it below.");
@@ -181,8 +183,9 @@ const Capture = () => {
             <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {timeBands.map(tb => (
                 <button key={tb.value} className={`btn ${data.timeBand === tb.value ? 'btn-primary' : 'btn-secondary'}`} onClick={() => {
-                  setData({...data, timeBand: tb.value});
-                  setTimeout(handleNext, 300);
+                  const newData = {...data, timeBand: tb.value};
+                  setData(newData);
+                  setTimeout(() => handleNext(newData), 300);
                 }}>
                   {tb.label}
                 </button>
