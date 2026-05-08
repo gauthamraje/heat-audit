@@ -61,28 +61,23 @@ const Checklist = () => {
 
     // Group Specific Q6-Q8
     if (group === 'STREET') {
-      qs.push({ id: 'q6', text: t.q6Street, options: [t.q1Yes, t.q1Partial, t.q1Shaded] }); // Reusing sunlight labels for yes/no/partial if needed, but spec says trees/roof/etc.
-      // Wait, let's use the specific labels from spec
-      qs.find(q => q.id === 'q6').options = [t.checklist?.yes || "Yes", t.checklist?.partial || "Partial", t.checklist?.no || "No"];
-      
-      // Let's refine the street Q6-Q8 options based on translations
-      const q6 = { id: 'q6', text: t.q6Street, options: ["🌳 Yes, good cover", "🌤 Only partial", "❌ None at all"] };
-      const q7 = { id: 'q7', text: t.q7Street, options: ["👥 Yes, several", "👤 Just 1–2", "❌ No one"] };
+      const q6 = { id: 'q6', text: t.q6Street, options: [t.q6StreetYes, t.q6StreetPartial, t.q6StreetNone] };
+      const q7 = { id: 'q7', text: t.q7Street, options: [t.q7StreetSeveral, t.q7StreetFew, t.q7StreetNone] };
       const q8 = { 
         id: 'q8', 
         text: t.q8Street, 
-        options: ["😓 Yes, clearly", "🤔 Slightly", "✅ No signs"],
-        condition: (ans) => ans['q7'] && ans['q7'] !== "❌ No one"
+        options: [t.q8StreetYes, t.q8StreetSlightly, t.q8StreetNo],
+        condition: (ans) => ans['q7'] && ans['q7'] !== t.q7StreetNone
       };
       qs.push(q6, q7, q8);
     } else {
-      const q6 = { id: 'q6', text: t.q6Entry, options: ["✅ Yes, comfortably", "😰 Sort of", "❌ No — too hot/cramped"] };
-      const q7 = { id: 'q7', text: t.q7Entry, options: ["👥 Yes", "❌ No / Not sure"] };
+      const q6 = { id: 'q6', text: t.q6Entry, options: [t.q6EntryYes, t.q6EntryPartial, t.q6EntryNo] };
+      const q7 = { id: 'q7', text: t.q7Entry, options: [t.q7EntryYes, t.q7EntryNo] };
       const q8 = { 
         id: 'q8', 
         text: t.q8Entry, 
-        options: ["✅ Yes, seating exists", "❌ No — standing only"],
-        condition: (ans) => ans['q7'] && ans['q7'] === "👥 Yes"
+        options: [t.q8EntryYes, t.q8EntryNo],
+        condition: (ans) => ans['q7'] && ans['q7'] === t.q7EntryYes
       };
       qs.push(q6, q7, q8);
     }
