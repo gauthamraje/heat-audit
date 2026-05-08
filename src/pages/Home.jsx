@@ -19,6 +19,11 @@ const Home = () => {
 
   const t = useTranslation('home');
 
+  const updateUserProfileRef = React.useRef(updateUserProfile);
+  React.useEffect(() => {
+    updateUserProfileRef.current = updateUserProfile;
+  }, [updateUserProfile]);
+
   const normalizeWhatsAppNumber = (input) => {
     const raw = String(input || '').trim();
     if (!raw) return '';
@@ -50,9 +55,41 @@ const Home = () => {
       const userParam = params.get('user');
       const phoneFromUrl = normalizeWhatsAppNumber(userParam);
       if (!phoneFromUrl) return;
-      if (hasPhoneNumber(state.userProfile)) return;
 
-      updateUserProfile({ name: 'WA BOT User', phone: phoneFromUrl });
+      // If the link includes a number, treat it as the source of truth for this session/device.
+      // This avoids "didn't work" cases where an old stored number blocks the bootstrap.
+      let currentPhone = '';
+      try {
+        const rawSaved = localStorage.getItem('heat_audit_state_v1');
+        if (rawSaved) {
+          const parsed = JSON.parse(rawSaved);
+          currentPhone = normalizeWhatsAppNumber(parsed?.userProfile?.phone);
+        }
+      } catch {
+        // ignore
+      }
+
+      if (currentPhone !== phoneFromUrl) {
+        // Write-through to localStorage immediately to avoid races with submissions.
+        try {
+          const rawSaved = localStorage.getItem('heat_audit_state_v1');
+          const parsed = rawSaved ? JSON.parse(rawSaved) : {};
+          const next = {
+            ...parsed,
+            userProfile: {
+              ...(parsed?.userProfile || {}),
+              name: 'WA BOT User',
+              phone: phoneFromUrl
+            }
+          };
+          localStorage.setItem('heat_audit_state_v1', JSON.stringify(next));
+        } catch {
+          // ignore
+        }
+
+        updateUserProfileRef.current?.({ name: 'WA BOT User', phone: phoneFromUrl });
+      }
+
       setProfileDraft(prev => ({
         name: (prev?.name || 'WA BOT User').trim(),
         phone: phoneFromUrl
@@ -60,7 +97,7 @@ const Home = () => {
     } catch {
       // ignore
     }
-    // Intentionally run once on mount; we only want to bootstrap initial state.
+    // Run once on mount; URL is only used to bootstrap.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

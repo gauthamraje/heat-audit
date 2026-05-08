@@ -84,6 +84,27 @@ export const AuditProvider = ({ children }) => {
     }));
   };
 
+  const getUserProfileForSubmission = React.useCallback(() => {
+    const inMemory = state.userProfile || {};
+    const name = String(inMemory.name || '').trim();
+    const phone = String(inMemory.phone || '').trim();
+    if (name || phone) return { name, phone };
+
+    try {
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (!saved) return { name: "", phone: "" };
+      const parsed = JSON.parse(saved);
+      const savedProfile = parsed?.userProfile || {};
+      return {
+        name: String(savedProfile.name || '').trim(),
+        phone: String(savedProfile.phone || '').trim()
+      };
+    } catch (e) {
+      console.error("Failed to load user profile for submission", e);
+      return { name: "", phone: "" };
+    }
+  }, [state.userProfile]);
+
   const startNewSpot = (locType, locGroup, label, isIndoor = false) => {
     setState(prev => ({
       ...prev,
@@ -155,13 +176,20 @@ export const AuditProvider = ({ children }) => {
     const url = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
     if (!url) return { success: false, error: "No URL" };
 
+    const profile = getUserProfileForSubmission();
     const payload = [{
       ...spot,
+      ...spot.answers, // Flatten answers for easier sheet columns
       submittedAt: new Date().toISOString(),
       deviceId: deviceId,
       language: state.language,
       rainfallContext: state.rainfallContext,
-      userProfile: state.userProfile,
+      name: profile.name,
+      phone: profile.phone,
+      userProfile: {
+        name: profile.name,
+        phone: profile.phone
+      },
       userAgent: navigator.userAgent
     }];
 
@@ -177,19 +205,25 @@ export const AuditProvider = ({ children }) => {
       console.error("Single spot submission failed", e);
       return { success: false, error: e.toString() };
     }
-  }, [deviceId, state.language, state.rainfallContext]);
+  }, [deviceId, state.language, state.rainfallContext, getUserProfileForSubmission]);
 
   const submitReflections = React.useCallback(async () => {
     const url = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
     if (!url) return { success: false, error: "No URL" };
 
+    const profile = getUserProfileForSubmission();
     const payload = [{
       type: 'REFLECTION_ONLY',
       submittedAt: new Date().toISOString(),
       deviceId: deviceId,
       language: state.language,
-      reflections: state.reflections,
-      userProfile: state.userProfile,
+      name: profile.name,
+      phone: profile.phone,
+      userProfile: {
+        name: profile.name,
+        phone: profile.phone
+      },
+      reflections: { ...state.reflections },
       userAgent: navigator.userAgent
     }];
 
@@ -205,53 +239,45 @@ export const AuditProvider = ({ children }) => {
       console.error("Reflections submission failed", e);
       return { success: false, error: e.toString() };
     }
-  }, [deviceId, state.language, state.reflections]);
+  }, [deviceId, state.language, state.reflections, getUserProfileForSubmission]);
 
   const submitAuditData = React.useCallback(async () => {
-
     const url = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
-    if (!url) {
-      console.warn("VITE_GOOGLE_SCRIPT_URL is not set. Data will not be submitted.");
-      return { success: false, error: "No URL" };
-    }
+    if (!url) return { success: false, error: "No URL" };
 
-    if (state.spots.length === 0) {
-      console.warn("No spots to submit.");
-      return { success: false, error: "No data" };
-    }
+    if (state.spots.length === 0) return { success: false, error: "No data" };
 
-    // Attach metadata and session-level info to each spot
+    const profile = getUserProfileForSubmission();
     const payload = state.spots.map(spot => ({
       ...spot,
+      ...spot.answers,
+      ...state.reflections,
       submittedAt: new Date().toISOString(),
       deviceId: deviceId,
       language: state.language,
       rainfallContext: state.rainfallContext,
-      reflections: state.reflections,
+      name: profile.name,
+      phone: profile.phone,
+      userProfile: {
+        name: profile.name,
+        phone: profile.phone
+      },
       userAgent: navigator.userAgent
     }));
-
-    const jsonPayload = JSON.stringify(payload);
-    const sizeInMB = (encodeURI(jsonPayload).split(/%..|./).length - 1) / (1024 * 1024);
-
-    console.log(`Submitting ${payload.length} spots. Payload size: ~${sizeInMB.toFixed(2)} MB`);
 
     try {
       await fetch(url, {
         method: "POST",
         mode: "no-cors",
-        headers: {
-          "Content-Type": "text/plain",
-        },
-        body: jsonPayload,
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify(payload),
       });
-
       return { success: true };
     } catch (e) {
       console.error("Submission failed", e);
       return { success: false, error: e.toString() };
     }
-  }, [state.spots, state.language, state.rainfallContext, state.reflections, deviceId]);
+  }, [state.spots, state.language, state.rainfallContext, state.reflections, getUserProfileForSubmission, deviceId]);
 
   // Helper stats
   const stopCount = state.spots.length;
