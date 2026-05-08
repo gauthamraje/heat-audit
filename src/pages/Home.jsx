@@ -19,9 +19,21 @@ const Home = () => {
 
   const t = useTranslation('home');
 
+  const normalizeWhatsAppNumber = (input) => {
+    const raw = String(input || '').trim();
+    if (!raw) return '';
+    // Keep digits only (accept "+91 98..." etc)
+    return raw.replace(/[^\d]/g, '');
+  };
+
+  const hasPhoneNumber = (profile) => {
+    const phone = normalizeWhatsAppNumber(profile?.phone);
+    return Boolean(phone);
+  };
+
   const isUserProfileComplete = (profile) => {
-    const name = (profile?.name || '').trim();
-    const phone = (profile?.phone || '').trim();
+    const name = String(profile?.name || '').trim();
+    const phone = normalizeWhatsAppNumber(profile?.phone);
     return Boolean(name && phone);
   };
 
@@ -30,6 +42,27 @@ const Home = () => {
       navigate('/summary');
     }
   }, [state.isComplete, navigate]);
+
+  // Bootstrap WhatsApp number from URL (?user=9198...)
+  React.useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const userParam = params.get('user');
+      const phoneFromUrl = normalizeWhatsAppNumber(userParam);
+      if (!phoneFromUrl) return;
+      if (hasPhoneNumber(state.userProfile)) return;
+
+      updateUserProfile({ name: 'WA BOT User', phone: phoneFromUrl });
+      setProfileDraft(prev => ({
+        name: (prev?.name || 'WA BOT User').trim(),
+        phone: phoneFromUrl
+      }));
+    } catch {
+      // ignore
+    }
+    // Intentionally run once on mount; we only want to bootstrap initial state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (state.isComplete) return null;
 
@@ -84,10 +117,12 @@ const Home = () => {
   };
 
   const saveProfile = () => {
-    if (isUserProfileComplete(profileDraft)) {
+    const phone = normalizeWhatsAppNumber(profileDraft.phone);
+    const name = String(profileDraft.name || '').trim();
+    if (name && phone) {
       updateUserProfile({
-        name: profileDraft.name.trim(),
-        phone: profileDraft.phone.trim()
+        name,
+        phone
       });
       setShowProfile(false);
       navigate('/location-type');
