@@ -19,6 +19,12 @@ const Home = () => {
 
   const t = useTranslation('home');
 
+  const isUserProfileComplete = (profile) => {
+    const name = (profile?.name || '').trim();
+    const phone = (profile?.phone || '').trim();
+    return Boolean(name && phone);
+  };
+
   React.useEffect(() => {
     if (state.isComplete) {
       navigate('/summary');
@@ -36,7 +42,7 @@ const Home = () => {
   const handleLogSpot = () => {
     if (stopCount === 0 && !state.hasSeenSafety) {
       setShowSafety(true);
-    } else if (stopCount === 0 && !state.userProfile?.name) {
+    } else if (stopCount === 0 && !isUserProfileComplete(state.userProfile)) {
       setShowProfile(true);
     } else {
       navigate('/location-type');
@@ -70,7 +76,7 @@ const Home = () => {
     setHasSeenSafety(true);
     setShowSafety(false);
     // After safety, show profile if missing
-    if (!state.userProfile?.name) {
+    if (!isUserProfileComplete(state.userProfile)) {
       setShowProfile(true);
     } else {
       navigate('/location-type');
@@ -78,19 +84,16 @@ const Home = () => {
   };
 
   const saveProfile = () => {
-    if (profileDraft.name && profileDraft.phone) {
-      updateUserProfile(profileDraft);
+    if (isUserProfileComplete(profileDraft)) {
+      updateUserProfile({
+        name: profileDraft.name.trim(),
+        phone: profileDraft.phone.trim()
+      });
       setShowProfile(false);
       navigate('/location-type');
     } else {
-      alert("Please fill both name and WhatsApp number.");
+      alert(t.profileError);
     }
-  };
-
-  const skipProfile = () => {
-    updateUserProfile({ name: "Anonymous", phone: "N/A" });
-    setShowProfile(false);
-    navigate('/location-type');
   };
 
   return (
@@ -223,7 +226,7 @@ const Home = () => {
                   className="input-field" 
                   value={profileDraft.name}
                   onChange={(e) => setProfileDraft({...profileDraft, name: e.target.value})}
-                  placeholder="Ninja Name" 
+                  placeholder={t.namePlaceholder}
                 />
               </div>
               
@@ -234,16 +237,13 @@ const Home = () => {
                   className="input-field" 
                   value={profileDraft.phone}
                   onChange={(e) => setProfileDraft({...profileDraft, phone: e.target.value})}
-                  placeholder="+91 XXXXX XXXXX" 
+                  placeholder={t.phonePlaceholder}
                 />
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <button className="btn btn-primary" onClick={saveProfile}>
                   {t.profileReady}
-                </button>
-                <button className="btn btn-secondary" onClick={skipProfile} style={{ background: 'transparent', border: 'none', textDecoration: 'underline' }}>
-                  {t.profileSkip}
                 </button>
               </div>
             </motion.div>
